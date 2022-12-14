@@ -24,7 +24,7 @@ def main():
     print("Tokenizing dataset")
     tokenized_dataset = tokinize(dataset, tokenizer)
 
-    accuracy = evaluate.load("accuracy")
+    
     id2label = {0: "EN", 1: "MT"}
     label2id = {"EN": 0, "MT": 1}
 
@@ -52,6 +52,7 @@ def main():
         data_collator=data_collator,
         compute_metrics=compute_metrics,
     )
+    trainer.train()
 
 
 def load_dataset_dict(data_dir: Path, splits: List[str] = ["train", "val"]) -> DatasetDict:
@@ -65,6 +66,7 @@ def tokinize(dataset, tokenizer):
     return dataset.map(preprocess_function, batched=True)
 
 def compute_metrics(eval_pred,accuracy):
+    accuracy = evaluate.load("accuracy")
     predictions, labels = eval_pred
     predictions = np.argmax(predictions, axis=1)
     return accuracy.compute(predictions=predictions, references=labels)
