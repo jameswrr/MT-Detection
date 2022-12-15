@@ -7,6 +7,7 @@
 #SBATCH --mail-type=END
 
 module load anaconda
+mdule load cuda10.1
 
 
 source activate /data/users/jroy03/conda/envs/test_pkgs
