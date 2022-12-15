@@ -20,11 +20,10 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
 
     print(f"Loading dataset from: {args.data_dir}")
-    dataset = load_dataset_dict(args.data_dir, splits=["train", "val"])
+    dataset = load_dataset_dict(args.data_dir, splits=["train", "val", "test"])
 
     print("Tokenizing dataset")
     tokenized_dataset = tokinize(dataset, tokenizer)
-
     
     id2label = {0: "EN", 1: "MT"}
     label2id = {"EN": 0, "MT": 1}
@@ -48,7 +47,7 @@ def main():
         model=model,
         args=training_args,
         train_dataset=tokenized_dataset["train"],
-        eval_dataset=tokenized_dataset["test"],
+        eval_dataset=tokenized_dataset["val"],
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
@@ -56,17 +55,17 @@ def main():
     trainer.train()
 
 
-def load_dataset_dict(data_dir: Path, splits: List[str] = ["train", "val"]) -> DatasetDict:
+def load_dataset_dict(data_dir: Path, splits: List[str] = ["train", "val", "test"]) -> DatasetDict:
     data_files = {split: str(data_dir / f"{split}.csv") for split in splits}
     dataset = load_dataset("csv", data_files=data_files)
     return dataset
 
 def tokinize(dataset, tokenizer):
     def preprocess_function(examples):
-        return tokenizer(examples["Comment"], truncation=True)
+        return tokenizer(examples["text"], truncation=True)
     return dataset.map(preprocess_function, batched=True)
 
-def compute_metrics(eval_pred,accuracy):
+def compute_metrics(eval_pred):
     accuracy = evaluate.load("accuracy")
     predictions, labels = eval_pred
     predictions = np.argmax(predictions, axis=1)
